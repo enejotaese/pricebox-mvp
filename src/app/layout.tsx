@@ -5,7 +5,7 @@ import { Inter } from "next/font/google"
 
 import { siteConfig } from "@/config/site"
 import { cn } from "@/lib/utils"
-import { ThemeProvider } from "@/components/theme-provider"
+import { LayoutWrapper } from "./layout-wrapper"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -65,23 +65,43 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="es" suppressHydrationWarning>
       <head />
       <body
         className={cn(
-          "min-h-screen bg-background antialiased",
+          "min-h-screen bg-white dark:bg-slate-950 antialiased transition-colors duration-300",
           inter.className
         )}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
+        <ThemeScript />
+        <LayoutWrapper>
           {children}
-        </ThemeProvider>
+        </LayoutWrapper>
       </body>
     </html>
+  )
+}
+
+/**
+ * Script que se ejecuta ANTES de renderizar para evitar flash de tema incorrecto
+ * Aplicación de buena práctica: Previene FOUC (Flash of Unstyled Content)
+ */
+function ThemeScript() {
+  const themeScript = `
+    try {
+      const theme = localStorage.getItem('theme') || 'light';
+      if (theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } catch (e) {}
+  `;
+  
+  return (
+    <script
+      dangerouslySetInnerHTML={{ __html: themeScript }}
+      suppressHydrationWarning
+    />
   )
 }
